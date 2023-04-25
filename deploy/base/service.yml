@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ecommerce-internal-ui-service
+spec:
+  selector:
+    app: ecommerce-internal-ui-deployment
+  ports:
+    - protocol: TCP
+      targetPort: 80
+      port: 80

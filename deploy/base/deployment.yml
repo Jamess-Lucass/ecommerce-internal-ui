@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-internal-ui-deployment
+  labels:
+    app: ecommerce-internal-ui-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-internal-ui-deployment
+  template:
+    metadata:
+      labels:
+        app: ecommerce-internal-ui-deployment
+    spec:
+      containers:
+        - name: ecommerce-internal-ui-container
+          image: ghcr.io/jamess-lucass/ecommerce-internal-ui:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              memory: 100Mi
+              cpu: 100m
+            limits:
+              memory: 200Mi
+              cpu: 200m
