@@ -1,44 +1,143 @@
 import {
-  TableContainer,
-  Table,
-  Thead,
-  Tr,
-  Th,
   Flex,
-  Tbody,
-  Td,
-  Skeleton,
-  Text,
   Link,
-  Image,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  Input,
+  Image,
+  Text,
+  useDisclosure,
+  Avatar,
 } from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { Box } from "framer-motion";
 import { FiChevronRight } from "react-icons/fi";
-import { env } from "../../environment";
-import { APIResponse } from "../../types/api-response";
 import { User } from "../../types/user";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, FormProvider } from "react-hook-form";
+import { TableProvider } from "../../contexts/table-context";
+import { environment } from "../../environment";
+import { useCreateTable } from "../../hooks/use-create-table";
+import { Table } from "../../components/table/table";
+import { z } from "zod";
+
+const schema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  email: z.string().optional(),
+});
+
+type Inputs = z.infer<typeof schema>;
 
 export default function Users() {
-  const getUsers = async (signal: AbortSignal | undefined) => {
-    const response = await axios.get<APIResponse<User>>(
-      `${env.USER_SERVICE_BASE_URL}/api/v1/users`,
+  const form = useForm<Inputs>({
+    resolver: zodResolver(schema),
+    defaultValues: { firstName: "", lastName: "", email: "" },
+  });
+
+  const table = useCreateTable<User>({
+    url: `${environment.USER_SERVICE_BASE_URL}/api/v1/users`,
+    key: (row) => row.id,
+    columns: [
       {
-        signal,
-        withCredentials: true,
-      }
-    );
+        id: "id",
+        name: "Id",
+        cell: (row) => (
+          <Link as="a" href={`/products/${row.id}`} color="blue.400">
+            {row.id}
+          </Link>
+        ),
+      },
+      {
+        id: "email",
+        name: "Email",
+        cell: (row) => (
+          <Flex alignItems="center" gap={2}>
+            <Image
+              src={row.avatarUrl}
+              height={6}
+              borderRadius="full"
+              referrerPolicy="no-referrer"
+            />
+            <Text>{row.email}</Text>
+          </Flex>
+        ),
+      },
+      { id: "role", name: "Role", cell: (row) => row.role },
+      {
+        id: "createdAt",
+        name: "Created At",
+        cell: (row) => new Date(row.createdAt).toUTCString(),
+      },
+      {
+        id: "updatedAt",
+        name: "Updated At",
+        cell: (row) =>
+          row.updatedAt ? new Date(row.updatedAt).toUTCString() : "-",
+      },
+    ],
+    deleteEnabled: true,
+    filters: {
+      schema: schema,
+      form: (
+        <>
+          <Flex gap={4} flexDir={{ base: "column", md: "row" }}>
+            <FormControl
+              isInvalid={!!form.formState.errors.email}
+              isRequired={false}
+            >
+              <FormLabel fontSize="xs">Email</FormLabel>
+              <Input
+                type="text"
+                placeholder="John.doe@email.com"
+                size="sm"
+                {...form.register("email")}
+              />
+              <FormErrorMessage>
+                {form.formState.errors.email?.message}
+              </FormErrorMessage>
+            </FormControl>
+          </Flex>
 
-    return response?.data;
-  };
+          <Flex gap={4} flexDir={{ base: "column", md: "row" }}>
+            <FormControl
+              isInvalid={!!form.formState.errors.firstName}
+              isRequired={false}
+            >
+              <FormLabel fontSize="xs">First Name</FormLabel>
+              <Input
+                type="text"
+                placeholder="John"
+                size="sm"
+                {...form.register("firstName")}
+              />
+              <FormErrorMessage>
+                {form.formState.errors.firstName?.message}
+              </FormErrorMessage>
+            </FormControl>
 
-  const { data, isLoading } = useQuery(["/api/v1/users"], ({ signal }) =>
-    getUsers(signal)
-  );
+            <FormControl
+              isInvalid={!!form.formState.errors.lastName}
+              isRequired={false}
+            >
+              <FormLabel fontSize="xs">Last Name</FormLabel>
+              <Input
+                type="text"
+                placeholder="Doe"
+                size="sm"
+                {...form.register("lastName")}
+              />
+              <FormErrorMessage>
+                {form.formState.errors.lastName?.message}
+              </FormErrorMessage>
+            </FormControl>
+          </Flex>
+        </>
+      ),
+    },
+  });
 
   return (
     <>
@@ -52,60 +151,11 @@ export default function Users() {
         </BreadcrumbItem>
       </Breadcrumb>
 
-      <TableContainer flex={1}>
-        <Table variant="simple" colorScheme="gray" size="sm" overflowX="auto">
-          <Thead h={8}>
-            <Tr>
-              <Th>ID</Th>
-              <Th>Email</Th>
-              <Th>Role</Th>
-              <Th>Name</Th>
-            </Tr>
-          </Thead>
-          <Tbody position="relative">
-            {!data?.value &&
-              Array(18).map((x) => (
-                <Tr key={x}>
-                  <Td height="10px" colSpan={10}>
-                    <Skeleton height="full" speed={1.2} startColor="gray.700" />
-                  </Td>
-                </Tr>
-              ))}
-            {data?.value.length === 0 && (
-              <Tr>
-                <Td height={96} rowSpan={20} colSpan={10}>
-                  <Flex justifyContent="center">No results found</Flex>
-                </Td>
-              </Tr>
-            )}
-            {data?.value.map((row) => (
-              <Tr
-                key={row.id}
-                opacity={isLoading ? "10%" : "inherit"}
-                pointerEvents={isLoading ? "none" : "inherit"}
-              >
-                <Td>
-                  <Link
-                    href={`/users/${row.id}`}
-                    color="blue.400"
-                    display={{ base: "none", sm: "block" }}
-                  >
-                    {row.id}
-                  </Link>
-                </Td>
-                <Td>{row.email}</Td>
-                <Td>{row.role}</Td>
-                <Td display="flex" gap={2} alignItems="center">
-                  <Image src={row.avatarUrl} h={6} />
-                  <Text>
-                    {row.firstName} {row.lastName}
-                  </Text>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
+      <TableProvider initialValue={table}>
+        <FormProvider {...form}>
+          <Table />
+        </FormProvider>
+      </TableProvider>
     </>
   );
 }

@@ -14,4 +14,4 @@ const data = {
   LOGIN_UI_BASE_URL: import.meta.env.VITE_LOGIN_UI_BASE_URL,
 };
 
-export const env = schema.parse(data);
+export const environment = schema.parse(data);

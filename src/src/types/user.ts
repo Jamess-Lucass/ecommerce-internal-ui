@@ -13,4 +13,5 @@ export type User = {
   status: Status;
   role: Role;
   createdAt: string;
+  updatedAt: string;
 };

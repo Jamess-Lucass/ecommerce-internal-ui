@@ -18,7 +18,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { useRef } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { env } from "../../environment";
+import { environment } from "../../environment";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Catalog } from "../../types/catalog";
@@ -53,7 +53,7 @@ export function CreateCatalogItemDrawer({ isOpen, onClose }: Props) {
 
   const createCatalogItemMutation = useMutation(
     (body: Inputs) =>
-      axios.post(`${env.CATALOG_SERVICE_BASE_URL}/api/v1/catalog`, body, {
+      axios.post(`${environment.CATALOG_SERVICE_BASE_URL}/api/v1/catalog`, body, {
         withCredentials: true,
       }),
     {

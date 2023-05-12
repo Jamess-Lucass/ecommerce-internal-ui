@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { env } from "../../environment";
+import { environment } from "../../environment";
 import { Catalog } from "../../types/catalog";
 import { FiChevronRight, FiPlus } from "react-icons/fi";
 import { CreateCatalogItemDrawer } from "../../components/catalog/create-drawer";
@@ -26,7 +26,7 @@ export default function CatalogPage() {
 
   const getUsers = async (signal: AbortSignal | undefined) => {
     const response = await axios.get<Catalog[]>(
-      `${env.CATALOG_SERVICE_BASE_URL}/api/v1/catalog`,
+      `${environment.CATALOG_SERVICE_BASE_URL}/api/v1/catalog`,
       {
         signal,
         withCredentials: true,

@@ -18,7 +18,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { useRef } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
-import { env } from "../../environment";
+import { environment } from "../../environment";
 import { roles, statuses, User } from "../../types/user";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -66,7 +66,7 @@ export function UpdateUserDrawer({ isOpen, onClose, user }: Props) {
 
   const updateUserMutation = useMutation(
     (body: Inputs) =>
-      axios.put(`${env.USER_SERVICE_BASE_URL}/api/v1/users/${user.id}`, body, {
+      axios.put(`${environment.USER_SERVICE_BASE_URL}/api/v1/users/${user.id}`, body, {
         withCredentials: true,
         headers: { Prefer: "return=representation" },
       }),

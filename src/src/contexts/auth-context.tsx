@@ -8,7 +8,7 @@ import {
   useContext,
   useMemo,
 } from "react";
-import { env } from "../environment";
+import { environment } from "../environment";
 import { User } from "../types/user";
 
 type AuthContextType = {
@@ -25,7 +25,7 @@ type Props = {
 export function AuthProvider({ children }: Props) {
   const getUser = async (signal?: AbortSignal) => {
     const response = await axios.get<User>(
-      `${env.IDENTITY_SERVICE_BASE_URL}/api/v1/oauth/me`,
+      `${environment.IDENTITY_SERVICE_BASE_URL}/api/v1/oauth/me`,
       {
         signal,
         withCredentials: true,
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: Props) {
     ({ signal }) => getUser(signal),
     {
       onError() {
-        window.location.href = `${env.LOGIN_UI_BASE_URL}?redirect_uri=${window.location.href}`;
+        window.location.href = `${environment.LOGIN_UI_BASE_URL}?redirect_uri=${window.location.href}`;
       },
     }
   );
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: Props) {
   const signoutMutation = useMutation(
     () =>
       axios.post(
-        `${env.IDENTITY_SERVICE_BASE_URL}/api/v1/oauth/signout`,
+        `${environment.IDENTITY_SERVICE_BASE_URL}/api/v1/oauth/signout`,
         {},
         {
           withCredentials: true,
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: Props) {
       ),
     {
       onSuccess: () => {
-        window.location.href = `${env.LOGIN_UI_BASE_URL}?redirect_uri=${window.location.href}`;
+        window.location.href = `${environment.LOGIN_UI_BASE_URL}?redirect_uri=${window.location.href}`;
       },
     }
   );
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: Props) {
   }
 
   if (user?.role !== "Administrator" && user?.role !== "Employee") {
-    window.location.href = env.LOGIN_UI_BASE_URL;
+    window.location.href = environment.LOGIN_UI_BASE_URL;
 
     return (
       <Center w="full" h="100vh">

@@ -20,7 +20,7 @@ import axios from "axios";
 import { FiChevronRight } from "react-icons/fi";
 import { useParams } from "react-router-dom";
 import { UpdateUserDrawer } from "../../components/users/update-drawer";
-import { env } from "../../environment";
+import { environment } from "../../environment";
 import { User } from "../../types/user";
 
 type Params = {
@@ -33,7 +33,7 @@ export default function UserDetails() {
 
   const getUser = async (signal: AbortSignal | undefined) => {
     const response = await axios.get<User>(
-      `${env.USER_SERVICE_BASE_URL}/api/v1/users/${id}`,
+      `${environment.USER_SERVICE_BASE_URL}/api/v1/users/${id}`,
       {
         signal,
         withCredentials: true,
