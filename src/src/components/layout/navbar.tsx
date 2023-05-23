@@ -32,7 +32,7 @@ export function Navbar({ onMobileSidebarToggle }: NavbarProps) {
     <Flex
       pr={4}
       pl={2}
-      height={16}
+      minHeight={16}
       alignItems="center"
       borderBottomWidth="1px"
       bg={useColorModeValue("white", "gray.900")}

@@ -32,6 +32,7 @@ import {
   Tr,
   useColorModeValue,
   useDisclosure,
+  Select,
 } from "@chakra-ui/react";
 import {
   FiChevronDown,
@@ -63,8 +64,8 @@ import { Row } from "../../hooks/use-create-table";
 type CreateContextReturn<T> = [React.Provider<T>, () => T];
 
 type ODataResponse<T> = {
+  count: number;
   value: T[];
-  "@odata.count": number | undefined;
 };
 
 export function createContext<T>() {
@@ -90,8 +91,6 @@ export function Table() {
   const queryClient = useQueryClient();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const tableBodyRef = useRef<HTMLTableSectionElement>(null);
-  const tablePagingRef = useRef<HTMLDivElement>(null);
 
   type Inputs = Record<string, unknown>;
   const {
@@ -102,43 +101,17 @@ export function Table() {
     formState: { isSubmitting },
   } = useFormContext();
 
-  const rowHeight = 42;
+  const initialTablePageSize =
+    window.localStorage.getItem("table-page-size") || "15";
 
   const [query, setQuery] = useState<URLSearchParams>(
-    new URLSearchParams("$top=15&$count=true&")
+    new URLSearchParams(`top=${initialTablePageSize}&count=true`)
   );
   const [orderedColumn, setOrderedColumn] = useState({
     name: table.defaults?.orderBy?.column,
     direction: table.defaults?.orderBy?.direction,
   });
   const [selectedItems, setSelectedItems] = useState<Row[]>([]);
-
-  const getStartingYPositionOfTableBody = () =>
-    tableBodyRef.current?.getBoundingClientRect().top;
-
-  const calculateMaximumRowsBasedOnScreenHeight = (): number => {
-    // Calculate how many records to fetch based on how many
-    // rows can be rendered without the user having to scroll
-    // based on screen size
-    const params = new URLSearchParams(query);
-
-    const startYPos = getStartingYPositionOfTableBody();
-    const tablePagingHeight =
-      tablePagingRef.current?.getBoundingClientRect().height ?? 0;
-
-    const maxNumberOfRows = Math.floor(
-      (window.innerHeight - tablePagingHeight - (startYPos ?? 0)) / rowHeight
-    );
-
-    params.set("$top", maxNumberOfRows.toString());
-    setQuery(params);
-
-    return maxNumberOfRows;
-  };
-
-  useEffect(() => {
-    calculateMaximumRowsBasedOnScreenHeight();
-  }, []);
 
   const getData = async (signal: AbortSignal | undefined, filters: string) => {
     const response = await axios.get<ODataResponse<Row>>(
@@ -149,14 +122,12 @@ export function Table() {
       }
     );
 
-    return response?.data;
+    return response.data;
   };
 
   const { data, isLoading, isRefetching, refetch } = useQuery(
     [new URL(table.url).pathname, query.toString()],
-    ({ signal }) => getData(signal, query.toString()),
-    // Only fetch the query when we've calculated how many rows can be rendered
-    { enabled: !!getStartingYPositionOfTableBody() }
+    ({ signal }) => getData(signal, query.toString())
   );
 
   const deleteRowMutation = useMutation(
@@ -195,14 +166,14 @@ export function Table() {
       const params = new URLSearchParams(query);
 
       if (!event.target.value) {
-        // $search param cannot be empty
-        params.delete("$search");
+        // search param cannot be empty
+        params.delete("search");
         setQuery(params);
 
         return;
       }
 
-      params.set("$search", `"${event.target.value}"`);
+      params.set("search", `"${event.target.value}"`);
       setQuery(params);
     }, 500);
   };
@@ -228,23 +199,23 @@ export function Table() {
         direction: direction,
       });
 
-      params.set("$orderby", `${name} ${direction}`);
+      params.set("orderby", `${name} ${direction}`);
       setQuery(params);
       return;
     }
 
     setOrderedColumn({ name, direction: "asc" });
-    params.set("$orderby", `${name} asc`);
+    params.set("orderby", `${name} asc`);
     setQuery(params);
   };
 
   const handlePageOnClick = (page: number) => {
     const params = new URLSearchParams(query);
 
-    const top = Number(params.get("$top"));
+    const top = Number(params.get("top"));
     const skip = (page - 1) * top;
 
-    params.set("$skip", skip.toString());
+    params.set("skip", skip.toString());
 
     setQuery(params);
   };
@@ -292,16 +263,26 @@ export function Table() {
     handleSubmit(onSubmit)();
   };
 
+  const handlePageSizeOnChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+
+    window.localStorage.setItem("table-page-size", value);
+
+    const params = new URLSearchParams(query);
+    params.set("top", value);
+    setQuery(params);
+  };
+
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     const params = new URLSearchParams(query);
-    params.delete("$filter");
+    params.delete("filter");
 
     const filters = Object.entries(data)
       .filter(([, value]) => !!value)
-      .map(([key, value]) => `contains(${key},'${value}')`);
+      .map(([key, value]) => `${key} contains '${value}'`);
 
     if (filters.length > 0) {
-      params.set("$filter", filters.join(" and "));
+      params.set("filter", filters.join(" and "));
     }
 
     setQuery(params);
@@ -312,9 +293,9 @@ export function Table() {
     data?.value.some((x) => selectedItems.includes(x)) && !allSelected;
 
   const totalPages =
-    Math.ceil((data?.["@odata.count"] || 1) / Number(query.get("$top"))) ?? 1;
+    Math.ceil((data?.count || 1) / Number(query.get("top"))) ?? 1;
   const page =
-    Number(query.get("$skip") ?? 0) / Number(query.get("$top") ?? 1) + 1;
+    Number(query.get("skip") ?? 0) / Number(query.get("top") ?? 1) + 1;
   const first = Math.max(1, page - 3);
   const last = Math.min(totalPages, page + 3);
 
@@ -326,13 +307,13 @@ export function Table() {
           alignItems={{ base: "start", md: "center" }}
           flexDir={{ base: "column", md: "row" }}
         >
-          <InputGroup width={96}>
+          <InputGroup width={72} size="sm">
             <InputLeftElement pointerEvents="none">
               <FiSearch color="gray.300" />
             </InputLeftElement>
             <Input
               type="text"
-              size="md"
+              borderRadius="md"
               placeholder="Search"
               onChange={handleSearchOnChange}
             />
@@ -344,6 +325,7 @@ export function Table() {
                 <MenuButton
                   as={Button}
                   fontWeight="medium"
+                  variant="outline"
                   leftIcon={<FiFilter />}
                   rightIcon={<FiChevronDown />}
                   size="sm"
@@ -382,6 +364,7 @@ export function Table() {
             <Button
               size="sm"
               fontWeight="medium"
+              variant="outline"
               leftIcon={<FiRefreshCcw />}
               onClick={handleRefreshOnClick}
             >
@@ -392,6 +375,7 @@ export function Table() {
               <Button
                 size="sm"
                 fontWeight="medium"
+                variant="outline"
                 leftIcon={<FiPlus />}
                 onClick={table.createOnClick}
               >
@@ -403,6 +387,7 @@ export function Table() {
               <Button
                 size="sm"
                 fontWeight="medium"
+                variant="outline"
                 leftIcon={<FiTrash2 />}
                 onClick={onOpen}
                 isDisabled={selectedItems.length === 0}
@@ -447,7 +432,7 @@ export function Table() {
           </Flex>
         )}
 
-        <TableContainer flex={1}>
+        <TableContainer flex={1} mt={1}>
           <ChakraTable
             variant="simple"
             colorScheme="gray"
@@ -510,7 +495,7 @@ export function Table() {
                 ))}
               </Tr>
             </Thead>
-            <Tbody position="relative" ref={tableBodyRef}>
+            <Tbody position="relative">
               {!data?.value &&
                 Array(18).map((x) => (
                   <Tr key={x}>
@@ -540,7 +525,6 @@ export function Table() {
                   }
                   opacity={isLoading || isRefetching ? "10%" : "inherit"}
                   pointerEvents={isLoading || isRefetching ? "none" : "inherit"}
-                  height={`${rowHeight}px`}
                 >
                   {showRowSelect && (
                     <Td pr={1}>
@@ -562,13 +546,27 @@ export function Table() {
           gap={4}
           alignItems={{ base: "start", md: "center" }}
           flexDirection={{ base: "column", md: "row" }}
-          ref={tablePagingRef}
         >
           <Text flex={1}>
-            {(data?.["@odata.count"] ?? 0).toLocaleString()} matched result(s)
+            {selectedItems.length} of {data?.count ?? "-"} row(s) selected.
           </Text>
-          <Flex>
-            <Text mr={4}>{selectedItems.length} selected result(s)</Text>
+
+          <Flex gap={8}>
+            <Flex gap={4}>
+              <Text>Rows per page</Text>
+              <Select
+                size="sm"
+                w={20}
+                borderRadius="md"
+                onChange={handlePageSizeOnChange}
+                defaultValue={initialTablePageSize}
+              >
+                <option value="15">15</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </Select>
+            </Flex>
             <ButtonGroup size="sm" isAttached variant="outline">
               <IconButton
                 isDisabled={page === 1}
