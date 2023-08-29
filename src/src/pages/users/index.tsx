@@ -45,7 +45,7 @@ export default function Users() {
         id: "id",
         name: "Id",
         cell: (row) => (
-          <Link as="a" href={`/products/${row.id}`} color="blue.400">
+          <Link as="a" href={`/users/${row.id}`} color="blue.400">
             {row.id}
           </Link>
         ),

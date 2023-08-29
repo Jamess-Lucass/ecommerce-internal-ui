@@ -20,12 +20,13 @@ import { environment } from "../../environment";
 import { Catalog } from "../../types/catalog";
 import { FiChevronRight, FiPlus } from "react-icons/fi";
 import { CreateCatalogItemDrawer } from "../../components/catalog/create-drawer";
+import { APIResponse } from "../../types/api-response";
 
 export default function CatalogPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getUsers = async (signal: AbortSignal | undefined) => {
-    const response = await axios.get<Catalog[]>(
+    const response = await axios.get<APIResponse<Catalog>>(
       `${environment.CATALOG_SERVICE_BASE_URL}/api/v1/catalog`,
       {
         signal,
@@ -74,14 +75,14 @@ export default function CatalogPage() {
                   </Td>
                 </Tr>
               ))}
-            {data?.length === 0 && (
+            {data?.value.length === 0 && (
               <Tr>
                 <Td height={96} rowSpan={20} colSpan={10}>
                   <Flex justifyContent="center">No results found</Flex>
                 </Td>
               </Tr>
             )}
-            {data?.map((row) => (
+            {data?.value.map((row) => (
               <Tr
                 key={row.id}
                 opacity={isLoading ? "10%" : "inherit"}

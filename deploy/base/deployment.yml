@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ecommerce-internal-ui-deployment
+  name: ecommerce-internal-ui
   labels:
-    app: ecommerce-internal-ui-deployment
+    app: ecommerce-internal-ui
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ecommerce-internal-ui-deployment
+      app: ecommerce-internal-ui
   template:
     metadata:
       labels:
-        app: ecommerce-internal-ui-deployment
+        app: ecommerce-internal-ui
     spec:
       containers:
-        - name: ecommerce-internal-ui-container
+        - name: ecommerce-internal-ui
           image: ghcr.io/jamess-lucass/ecommerce-internal-ui:latest
           imagePullPolicy: Always
           ports:
