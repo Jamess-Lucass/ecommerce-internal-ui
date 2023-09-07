@@ -22,6 +22,7 @@ import { environment } from "../../environment";
 import { useCreateTable } from "../../hooks/use-create-table";
 import { Table } from "../../components/table/table";
 import { z } from "zod";
+import { withTransaction } from "@elastic/apm-rum-react";
 
 const schema = z.object({
   firstName: z.string().optional(),
@@ -31,7 +32,7 @@ const schema = z.object({
 
 type Inputs = z.infer<typeof schema>;
 
-export default function Users() {
+function Users() {
   const form = useForm<Inputs>({
     resolver: zodResolver(schema),
     defaultValues: { firstName: "", lastName: "", email: "" },
@@ -159,3 +160,5 @@ export default function Users() {
     </>
   );
 }
+
+export default withTransaction("Users", "component")(Users);

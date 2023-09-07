@@ -22,12 +22,13 @@ import { useParams } from "react-router-dom";
 import { UpdateUserDrawer } from "../../components/users/update-drawer";
 import { environment } from "../../environment";
 import { User } from "../../types/user";
+import { withTransaction } from "@elastic/apm-rum-react";
 
 type Params = {
   id: string;
 };
 
-export default function UserDetails() {
+function UserDetails() {
   const { id } = useParams<Params>();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -125,3 +126,5 @@ export default function UserDetails() {
     </>
   );
 }
+
+export default withTransaction("UserDetails", "component")(UserDetails);

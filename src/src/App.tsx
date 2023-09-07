@@ -16,6 +16,8 @@ import Users from "./pages/users";
 import { AuthProvider } from "./contexts/auth-context";
 import CatalogPage from "./pages/catalog";
 import UserDetails from "./pages/users/details";
+import { ApmRoutes } from "@elastic/apm-rum-react";
+import "./elastic-rum";
 
 function App() {
   const toast = useToast();
@@ -70,14 +72,14 @@ function App() {
                   </Center>
                 }
               >
-                <Routes>
+                <ApmRoutes>
                   <Route path="users">
                     <Route index element={<Users />} />
                     <Route path=":id" element={<UserDetails />} />
                   </Route>
                   <Route path="catalog" element={<CatalogPage />} />
                   <Route path="*" element={<Home />} />
-                </Routes>
+                </ApmRoutes>
               </Suspense>
             </BrowserRouter>
           </Layout>

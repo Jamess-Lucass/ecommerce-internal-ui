@@ -1,0 +1,11 @@
+// elastic__apm-rum-react.d.ts
+declare module "@elastic/apm-rum-react" {
+  import { ComponentType } from "react";
+  import { Routes } from "react-router";
+  export const ApmRoutes: typeof Routes;
+
+  export const withTransaction: (
+    name: string,
+    eventType: string
+  ) => <T>(component: ComponentType<T>) => ComponentType<T>;
+}

@@ -7,6 +7,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
+        - VITE_ELASTIC_APM_SERVER_URL=http://localhost:8200
+        - VITE_ELASTIC_APM_SERVICE_NAME=internal-ui
+        - VITE_ELASTIC_APM_DISTRIBUTED_TRACE_ORIGINS=http?:\/\/localhost
         - VITE_IDENTITY_SERVICE_BASE_URL=http://localhost:1000
         - VITE_USER_SERVICE_BASE_URL=http://localhost:1001
         - VITE_CATALOG_SERVICE_BASE_URL=http://localhost:1002

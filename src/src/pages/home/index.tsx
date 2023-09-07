@@ -1,7 +1,8 @@
 import { Text } from "@chakra-ui/react";
 import { useAuth } from "../../contexts/auth-context";
+import { withTransaction } from "@elastic/apm-rum-react";
 
-export default function Home() {
+function Home() {
   const { user } = useAuth();
 
   return (
@@ -10,3 +11,5 @@ export default function Home() {
     </Text>
   );
 }
+
+export default withTransaction("Home", "component")(Home);

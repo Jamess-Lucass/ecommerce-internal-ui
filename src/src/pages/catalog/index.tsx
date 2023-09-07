@@ -21,8 +21,9 @@ import { Catalog } from "../../types/catalog";
 import { FiChevronRight, FiPlus } from "react-icons/fi";
 import { CreateCatalogItemDrawer } from "../../components/catalog/create-drawer";
 import { APIResponse } from "../../types/api-response";
+import { withTransaction } from "@elastic/apm-rum-react";
 
-export default function CatalogPage() {
+function CatalogPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getUsers = async (signal: AbortSignal | undefined) => {
@@ -102,3 +103,5 @@ export default function CatalogPage() {
     </>
   );
 }
+
+export default withTransaction("Catalog", "component")(CatalogPage);
